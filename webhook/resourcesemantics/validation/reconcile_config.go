@@ -25,7 +25,6 @@ import (
 	"github.com/gobuffalo/flect"
 	"go.uber.org/zap"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
@@ -190,14 +189,6 @@ func (ac *reconciler) reconcileValidatingWebhook(ctx context.Context, caCert []b
 	}
 
 	current := configuredWebhook.DeepCopy()
-
-	// Set the owner to namespace.
-	ns, err := ac.client.CoreV1().Namespaces().Get(ctx, system.Namespace(), metav1.GetOptions{})
-	if err != nil {
-		return fmt.Errorf("failed to fetch namespace: %w", err)
-	}
-	nsRef := *metav1.NewControllerRef(ns, corev1.SchemeGroupVersion.WithKind("Namespace"))
-	current.OwnerReferences = []metav1.OwnerReference{nsRef}
 
 	for i, wh := range current.Webhooks {
 		if wh.Name != current.Name {
